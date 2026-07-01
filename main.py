@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,3 +27,13 @@ class IpDetector:
             return response.json()
         else:
             print('Что-то пошло не так')
+
+    def GetFileInfoIP(self):
+        infoIP_dict = self.infoIP()
+        with open("data_infoIP.json", "w", encoding="utf-8") as f:
+            json.dump(infoIP_dict, f, indent=2,ensure_ascii=False)
+
+
+
+test = IpDetector()
+test.GetFileInfoIP()
