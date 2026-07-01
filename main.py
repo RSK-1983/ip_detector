@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 token = os.getenv('YD_TOKEN')
+path_YD = '/test/data_infoIP.json'
 
 class IpDetector:
     def __init__(self):
@@ -33,7 +34,19 @@ class IpDetector:
         with open("data_infoIP.json", "w", encoding="utf-8") as f:
             json.dump(infoIP_dict, f, indent=2,ensure_ascii=False)
 
+    def PutFileToYD(self,token: str,path_YD: str):
+        self._token = token
+        self.path = path_YD
+        base_url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
+        response = requests.get(base_url,
+                                headers={'Authorization':f"OAuth {self._token}"},
+                                params={'path':self.path,'overwrite':True})
+        if response.status_code in [200,409]:
+            response2 = requests.put(url=response.json()['href'],data="data_infoIP.json")
+            print(response2)
+        else:
+            print('Что-то пошло не так')
 
 
 test = IpDetector()
-test.GetFileInfoIP()
+test.PutFileToYD(token,path_YD)
