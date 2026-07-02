@@ -4,49 +4,86 @@ import json
 from dotenv import load_dotenv
 
 load_dotenv()
-token = os.getenv('YD_TOKEN')
-path_YD = '/test/data_infoIP.json'
+TOKEN = os.getenv('YD_TOKEN')
+PATH_YD = os.getenv('PATH_YD')
+
 
 class IpDetector:
+    """Класс получает географическую информацию текущего клиента по его IP
+        и выгружет ее на Яндекс диск в формате JSON файла
+     """
     def __init__(self):
+        """Инициализирует объект
+
+        """
         pass
 
-    def myIP(self):
+    def get_myip(self):
+        """Метод возвращает текущий IP адрес клиента
+
+        Returns:
+            str: IP
+
+        """
         response = requests.get('https://api.ipify.org/',
-                                params={'format':'json'})
+                                params={'format': 'json'})
         if response.status_code == 200:
             ip = response.json()['ip']
             return ip
         else:
             print('Что-то пошло не так')
-    def infoIP(self):
-        myIP = self.myIP()
-        baseURL = 'https://ipinfo.io'
-        response = requests.get(f"{baseURL}/{myIP}/geo")
+
+    def get_infoip(self):
+        """Метод возвращает географическую информацию по IP адресу клиента
+
+        Returns: dict
+
+        """
+        my_ip = self.get_myip()
+        base_url = 'https://ipinfo.io'
+        response = requests.get(f"{base_url}/{my_ip}/geo")
 
         if response.status_code == 200:
             return response.json()
         else:
             print('Что-то пошло не так')
 
-    def GetFileInfoIP(self):
-        infoIP_dict = self.infoIP()
-        with open("data_infoIP.json", "w", encoding="utf-8") as f:
-            json.dump(infoIP_dict, f, indent=2,ensure_ascii=False)
+    def get_file_infoip(self):
+        """Метод возвращает географическую информацию по IP адресу клиента в формате JSON файла
 
-    def PutFileToYD(self,token: str,path_YD: str):
+        Returns:
+            JSON: data_infoIP.json
+
+        """
+        infoip_dict = self.get_infoip()
+        with open("data_infoIP.json", "w", encoding="utf-8") as f:
+            json.dump(infoip_dict, f, indent=2, ensure_ascii=False)
+
+    def put_file_to_yd(self, token: str, path_yd: str):
+        """Метод загружает файл JSON c географичесой информацией на Яндекс Диск
+
+        Args:
+            token (str): Токен доступа на Яндекс диск, полученный на Полигоне.
+            path_yd (str): Адрес загружаемого файла на Яндекс диске
+
+        Returns:
+            JSON: data_infoIP.json
+
+        """
         self._token = token
-        self.path = path_YD
+        self._path = path_yd
         base_url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
         response = requests.get(base_url,
-                                headers={'Authorization':f"OAuth {self._token}"},
-                                params={'path':self.path,'overwrite':True})
-        if response.status_code in [200,409]:
-            response2 = requests.put(url=response.json()['href'],data="data_infoIP.json")
-            print(response2)
+                                headers={'Authorization': f"OAuth {self._token}"},
+                                params={'path': self._path, 'overwrite': True})
+        if response.status_code in [200, 409]:
+            with open('data_infoIP.json') as f:
+                resp = requests.put(url=response.json()['href'], files={'file': f})
+            resp.raise_for_status()
+            print(resp)
         else:
             print('Что-то пошло не так')
 
 
 test = IpDetector()
-test.PutFileToYD(token,path_YD)
+test.put_file_to_yd(TOKEN, PATH_YD)
