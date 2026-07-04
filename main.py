@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('YD_TOKEN')
-PATH_YD = os.getenv('PATH_YD')
+PATH_YD = '/test/data_infoIP.json'
 
 
 class IpDetector:
@@ -56,7 +56,8 @@ class IpDetector:
 
         """
         infoip_dict = self.get_infoip()
-        with open("data_infoIP.json", "w", encoding="utf-8") as f:
+        file_path = os.path.join(os.getcwd(), 'data_infoIP.json')
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(infoip_dict, f, indent=2, ensure_ascii=False)
 
     def put_file_to_yd(self, token: str, path_yd: str):
@@ -84,6 +85,6 @@ class IpDetector:
         else:
             print('Что-то пошло не так')
 
-
-test = IpDetector()
-test.put_file_to_yd(TOKEN, PATH_YD)
+if __name__ == "__main__":
+    test = IpDetector()
+    test.put_file_to_yd(TOKEN, PATH_YD)
