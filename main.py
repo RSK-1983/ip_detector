@@ -78,6 +78,7 @@ class IpDetector:
                                 headers={'Authorization': f"OAuth {self._token}"},
                                 params={'path': self._path, 'overwrite': True})
         if response.status_code in [200, 409]:
+            self.get_file_infoip()
             with open('data_infoIP.json') as f:
                 resp = requests.put(url=response.json()['href'], files={'file': f})
             resp.raise_for_status()
