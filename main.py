@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 TOKEN = os.getenv('YD_TOKEN')
-PATH_YD = '/test/data_infoIP.json'
 
 
 class IpDetector:
@@ -60,24 +59,44 @@ class IpDetector:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(infoip_dict, f, indent=2, ensure_ascii=False)
 
-    def put_file_to_yd(self, token: str, path_yd: str):
+    def create_folder(self, token: str):
+        """Метод создает папку на Яндекс диске
+
+        Args:
+            token (str): Токен доступа на Яндекс диск, полученный на Полигоне
+        Returns:
+            str: путь к папке на Яндекс Диске с именем test
+
+        """
+        self._token = token
+        base_url = 'https://cloud-api.yandex.net/v1/disk/resources'
+        folder = '/test'
+        response = requests.put(base_url,
+                                headers={'Authorization': f"OAuth {self._token}"},
+                                params={'path': folder})
+        if response.status_code in [200, 201]:
+            return folder
+        else:
+            print('Что-то пошло не так')
+
+    def put_file_to_yd(self, token: str):
         """Метод загружает файл JSON c географичесой информацией на Яндекс Диск
 
         Args:
-            token (str): Токен доступа на Яндекс диск, полученный на Полигоне.
-            path_yd (str): Адрес загружаемого файла на Яндекс диске
+            token (str): Токен доступа на Яндекс диск, полученный на Полигоне
 
         Returns:
             JSON: data_infoIP.json
 
         """
         self._token = token
-        self._path = path_yd
+        self._path = f"{self.create_folder(token)}/data_infoIP.json"
+        self.get_file_infoip()
         base_url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
         response = requests.get(base_url,
                                 headers={'Authorization': f"OAuth {self._token}"},
                                 params={'path': self._path, 'overwrite': True})
-        if response.status_code in [200, 409]:
+        if response.status_code in [200, 409, 201]:
             self.get_file_infoip()
             with open('data_infoIP.json') as f:
                 resp = requests.put(url=response.json()['href'], files={'file': f})
@@ -88,4 +107,4 @@ class IpDetector:
 
 if __name__ == "__main__":
     test = IpDetector()
-    test.put_file_to_yd(TOKEN, PATH_YD)
+    test.put_file_to_yd(TOKEN)
